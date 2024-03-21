@@ -1,35 +1,13 @@
 {
-	"name": "extension-test-runner",
-	"displayName": "Extension Test Runner",
-	"version": "0.0.1",
-	"private": false,
-	"description": "Runs tests in VS Code extensions",
-	"homepage": "https://github.com/CodeEditorLand/Foundation#readme",
-	"bugs": {
-		"url": "https://github.com/CodeEditorLand/Foundation/issues"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/CodeEditorLand/Foundation.git"
-	},
-	"license": "SEE LICENSE IN LICENSE",
-	"author": {
-		"name": "Playform",
-		"email": "Hello@Playform.Cloud",
-		"url": "https://playform.cloud"
-	},
-	"type": "module",
-	"main": "./out/extension.js",
-	"scripts": {
-		"clean": "node -e \"fs.rmSync('out',{force:true,recursive:true})\"",
-		"compile": "npm run clean && node .esbuild.js --minify",
-		"postinstall": "cd src/typings && vscode-dts main && vscode-dts dev",
-		"package": "vsce package --no-dependencies",
-		"prepublishOnly": "TypeScriptESBuild 'Source/**/*.ts'",
-		"prettier": "prettier --write src",
-		"vscode:prepublish": "npm run compile",
-		"watch": "npm run clean && tsc --watch",
-		"watch:esbuild": "npm run clean && node .esbuild.js --watch"
+	"activationEvents": [
+		"workspaceContains:**/.vscode-test.{js,cjs,mjs}",
+		"onCommand:extension-test-runner.get-controllers-for-test"
+	],
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"description": "Test code and configurations are automatically evaluated by this extension.",
+			"supported": false
+		}
 	},
 	"contributes": {
 		"configuration": [
@@ -86,10 +64,6 @@
 			}
 		]
 	},
-	"activationEvents": [
-		"workspaceContains:**/.vscode-test.{js,cjs,mjs}",
-		"onCommand:extension-test-runner.get-controllers-for-test"
-	],
 	"dependencies": {
 		"@jridgewell/trace-mapping": "0.3.25",
 		"acorn-loose": "8.4.0",
@@ -102,6 +76,7 @@
 		"split2": "4.2.0",
 		"stacktrace-parser": "0.1.10"
 	},
+	"description": "Runs tests in VS Code extensions",
 	"devDependencies": {
 		"@types/chai": "4.3.13",
 		"@types/estree": "1.0.5",
@@ -123,17 +98,23 @@
 		"typescript-esbuild": "0.4.5",
 		"vscode-dts": "0.3.3"
 	},
-	"publishConfig": {
-		"access": "public"
-	},
-	"icon": "icon.png",
-	"capabilities": {
-		"untrustedWorkspaces": {
-			"description": "Test code and configurations are automatically evaluated by this extension.",
-			"supported": false
-		}
-	},
+	"displayName": "Extension Test Runner",
 	"enabledApiProposals": [
 		"testCoverage"
-	]
+	],
+	"icon": "icon.png",
+	"main": "./out/extension.js",
+	"name": "extension-test-runner",
+	"scripts": {
+		"clean": "node -e \"fs.rmSync('out',{force:true,recursive:true})\"",
+		"compile": "npm run clean && node .esbuild.js --minify",
+		"package": "vsce package --no-dependencies",
+		"postinstall": "cd src/typings && vscode-dts main && vscode-dts dev",
+		"prepublishOnly": "TypeScriptESBuild 'Source/**/*.ts'",
+		"prettier": "prettier --write src",
+		"vscode:prepublish": "npm run compile",
+		"watch": "npm run clean && tsc --watch",
+		"watch:esbuild": "npm run clean && node .esbuild.js --watch"
+	},
+	"type": "module"
 }
