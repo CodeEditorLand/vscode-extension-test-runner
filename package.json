@@ -4,31 +4,30 @@
 	"version": "0.0.1",
 	"private": false,
 	"description": "Runs tests in VS Code extensions",
-	"homepage": "https://github.com/CodeEditorLand/Foundation#readme",
+	"keywords": [
+		"land"
+	],
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/LandExtensionTestRunner#readme",
 	"bugs": {
-		"url": "https://github.com/CodeEditorLand/Foundation/issues"
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/LandExtensionTestRunner/issues"
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/CodeEditorLand/Foundation.git"
+		"url": "git+HTTPS://github.com/CodeEditorLand/LandExtensionTestRunner.git"
 	},
 	"license": "SEE LICENSE IN LICENSE",
 	"author": {
-		"name": "Playform",
-		"email": "Hello@Playform.Cloud",
-		"url": "https://playform.cloud"
+		"name": "🌆 — Land —",
+		"email": "Land@PlayForm.Cloud",
+		"url": "HTTPS://Land.PlayForm.Cloud"
 	},
 	"type": "module",
 	"main": "./out/extension.js",
 	"scripts": {
+		"Document": "Document 'Source/**/*.ts'",
 		"clean": "node -e \"fs.rmSync('out',{force:true,recursive:true})\"",
 		"compile": "npm run clean && node .esbuild.js --minify",
-		"postinstall": "cd src/typings && vscode-dts main && vscode-dts dev",
-		"package": "vsce package --no-dependencies",
-		"prepublishOnly": "TypeScriptESBuild 'Source/**/*.ts'",
-		"prettier": "prettier --write src",
-		"vscode:prepublish": "npm run compile",
-		"watch": "npm run clean && tsc --watch",
+		"prepublishOnly": "Build 'Source/**/*.ts'",
 		"watch:esbuild": "npm run clean && node .esbuild.js --watch"
 	},
 	"contributes": {
@@ -97,31 +96,25 @@
 		"data-uri-to-buffer": "6.0.2",
 		"enhanced-resolve": "5.16.0",
 		"error-stack-parser": "2.1.4",
-		"istanbul-to-vscode": "1.0.1",
-		"minimatch": "9.0.3",
+		"minimatch": "9.0.4",
 		"split2": "4.2.0",
 		"stacktrace-parser": "0.1.10"
 	},
 	"devDependencies": {
-		"@types/chai": "4.3.13",
+		"@playform/build": "0.0.7",
+		"@playform/document": "0.0.6",
+		"@types/chai": "4.3.14",
 		"@types/estree": "1.0.5",
 		"@types/glob": "8.1.0",
-		"@types/mocha": "10.0.6",
 		"@types/node": "20.x",
 		"@types/picomatch": "2.3.3",
 		"@types/sinon": "17.0.3",
 		"@types/split2": "4.2.3",
-		"@vscode/test-cli": "0.0.8",
-		"@vscode/test-electron": "2.3.9",
 		"acorn": "8.11.3",
 		"chai": "5.1.0",
 		"esbuild": "0.20.2",
-		"glob": "10.3.10",
-		"mocha": "10.3.0",
-		"sinon": "17.0.1",
-		"typescript": "5.4.2",
-		"typescript-esbuild": "0.4.5",
-		"vscode-dts": "0.3.3"
+		"glob": "10.3.12",
+		"sinon": "17.0.1"
 	},
 	"publishConfig": {
 		"access": "public"
@@ -132,8 +125,5 @@
 			"description": "Test code and configurations are automatically evaluated by this extension.",
 			"supported": false
 		}
-	},
-	"enabledApiProposals": [
-		"testCoverage"
-	]
+	}
 }
