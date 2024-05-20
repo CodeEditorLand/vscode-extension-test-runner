@@ -150,7 +150,7 @@ export class ConfigurationFile implements vscode.Disposable {
     );
   }
 
-  
+  /** @inheritdoc */
   public dispose() {
     this.ds.dispose();
   }
