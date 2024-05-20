@@ -1,10 +1,5 @@
 {
-	"scripts": {
-		"Document": "Document 'Source/**/*.ts'",
-		"build": "tsc -p tsconfig.json",
-		"prepublishOnly": "Build 'Source/**/*.ts'"
-	},
-	"devDependencies": {
-		"@playform/build": "0.0.7"
-	}
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  }
 }
