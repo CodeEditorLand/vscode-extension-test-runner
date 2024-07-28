@@ -1,12 +1,13 @@
 {
-	"name": "extension-test-runner",
-	"displayName": "Extension Test Runner",
-	"description": "Runs tests in VS Code extensions",
-	"main": "./out/extension.js",
-	"scripts": {
-		"clean": "node -e \"fs.rmSync('out',{force:true,recursive:true})\"",
-		"compile": "npm run clean && node .esbuild.js --minify",
-		"watch:esbuild": "npm run clean && node .esbuild.js --watch"
+	"activationEvents": [
+		"workspaceContains:**/.vscode-test.{js,cjs,mjs}",
+		"onCommand:extension-test-runner.get-controllers-for-test"
+	],
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"description": "Test code and configurations are automatically evaluated by this extension.",
+			"supported": false
+		}
 	},
 	"contributes": {
 		"configuration": [
@@ -80,10 +81,6 @@
 			}
 		]
 	},
-	"activationEvents": [
-		"workspaceContains:**/.vscode-test.{js,cjs,mjs}",
-		"onCommand:extension-test-runner.get-controllers-for-test"
-	],
 	"dependencies": {
 		"@jridgewell/trace-mapping": "0.3.19",
 		"acorn-loose": "8.3.0",
@@ -95,6 +92,7 @@
 		"split2": "4.2.0",
 		"stacktrace-parser": "0.1.10"
 	},
+	"description": "Runs tests in VS Code extensions",
 	"devDependencies": {
 		"@types/chai": "4.3.7",
 		"@types/estree": "1.0.2",
@@ -109,11 +107,13 @@
 		"glob": "10.3.10",
 		"sinon": "16.1.0"
 	},
+	"displayName": "Extension Test Runner",
 	"icon": "icon.png",
-	"capabilities": {
-		"untrustedWorkspaces": {
-			"description": "Test code and configurations are automatically evaluated by this extension.",
-			"supported": false
-		}
+	"main": "./out/extension.js",
+	"name": "extension-test-runner",
+	"scripts": {
+		"clean": "node -e \"fs.rmSync('out',{force:true,recursive:true})\"",
+		"compile": "npm run clean && node .esbuild.js --minify",
+		"watch:esbuild": "npm run clean && node .esbuild.js --watch"
 	}
 }
