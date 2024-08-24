@@ -6,22 +6,22 @@
 export class HumanError extends Error {}
 
 export class CliPackageMissing extends HumanError {
-  constructor(innerError: Error) {
-    // "Can't resolve 'foo' in 'C:\Users\conno\Github\vscode-extension-test-ext'"
-    super(
-      `${innerError.message}. Try running 'npm install @vscode/test-cli', and then 'Refresh Tests'`,
-    );
-  }
+	constructor(innerError: Error) {
+		// "Can't resolve 'foo' in 'C:\Users\conno\Github\vscode-extension-test-ext'"
+		super(
+			`${innerError.message}. Try running 'npm install @vscode/test-cli', and then 'Refresh Tests'`,
+		);
+	}
 }
 
 export class ConfigProcessReadError extends HumanError {
-  constructor(output: string) {
-    super(`Could not read .vscode-test configuration: ${output}`);
-  }
+	constructor(output: string) {
+		super(`Could not read .vscode-test configuration: ${output}`);
+	}
 }
 
 export class TestProcessExitedError extends HumanError {
-  constructor(code: number | null) {
-    super(`Test process exited with code ${code}`);
-  }
+	constructor(code: number | null) {
+		super(`Test process exited with code ${code}`);
+	}
 }
