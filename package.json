@@ -101,7 +101,7 @@
 		"@types/picomatch": "3.0.1",
 		"@types/sinon": "17.0.3",
 		"@types/split2": "4.2.3",
-		"acorn": "8.12.1",
+		"acorn": "8.13.0",
 		"chai": "5.1.1",
 		"esbuild": "0.24.0",
 		"glob": "11.0.0",
