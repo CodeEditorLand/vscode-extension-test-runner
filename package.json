@@ -94,7 +94,7 @@
 	},
 	"description": "Runs tests in VS Code extensions",
 	"devDependencies": {
-		"@types/chai": "5.0.0",
+		"@types/chai": "5.0.1",
 		"@types/estree": "1.0.6",
 		"@types/glob": "8.1.0",
 		"@types/node": "22.x",
