@@ -97,7 +97,7 @@
 		"@types/chai": "5.0.1",
 		"@types/estree": "1.0.6",
 		"@types/glob": "8.1.0",
-		"@types/node": "22.x",
+		"@types/node": "22.8.4",
 		"@types/picomatch": "3.0.1",
 		"@types/sinon": "17.0.3",
 		"@types/split2": "4.2.3",
