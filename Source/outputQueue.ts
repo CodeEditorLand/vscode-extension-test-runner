@@ -46,9 +46,11 @@ export class OutputQueue {
 	private runQueue(): Promise<void> | void {
 		while (this.queue.length) {
 			const r = this.queue[0]();
+
 			if (r instanceof Promise) {
 				return r.finally(() => {
 					this.queue.shift();
+
 					return this.runQueue();
 				});
 			} else {

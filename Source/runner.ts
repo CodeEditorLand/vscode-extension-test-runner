@@ -57,8 +57,11 @@ export class TestRunner {
 	): RunHandler {
 		return async (request) => {
 			const run = ctrl.createTestRun(request, name);
+
 			const baseArgs = ["--label", `${configIndex}`];
+
 			let coverage: Coverage | undefined;
+
 			if (recordCoverage) {
 				coverage = new Coverage(config);
 				baseArgs.push(...coverage.args);
@@ -73,13 +76,17 @@ export class TestRunner {
 					request,
 					run,
 				);
+
 			if (run.token.isCancellationRequested) {
 				return;
 			}
 
 			let ranAnyTest = false;
+
 			let isOutsideTestRun = true;
+
 			const outputQueue = new OutputQueue();
+
 			const enqueueLine = (line: string) => {
 				// vscode can log some preamble as it boots: grey those out
 				if (isOutsideTestRun) {
@@ -97,25 +104,33 @@ export class TestRunner {
 				config,
 				onLine: (line) => {
 					let parsed: MochaEventTuple;
+
 					try {
 						parsed = JSON.parse(line);
 					} catch {
 						// just normal output
 						enqueueLine(line);
+
 						return;
 					}
 					switch (parsed[0]) {
 						case MochaEvent.Start:
 							isOutsideTestRun = false;
+
 							break;
+
 						case MochaEvent.TestStart: {
 							const { file, path } = parsed[1];
+
 							const test = compiledFileTests.lookup(file, path);
+
 							if (test) run.started(test);
+
 							break;
 						}
 						case MochaEvent.SuiteStart: {
 							const { path } = parsed[1];
+
 							if (path.length > 0) {
 								enqueueLine(
 									`${"  ".repeat(path.length - 1)}${styles.green.open} ✓ ${styles.green.close}${
@@ -127,13 +142,16 @@ export class TestRunner {
 						}
 						case MochaEvent.Pass: {
 							ranAnyTest = true;
+
 							const { file, path } = parsed[1];
 							enqueueLine(
 								`${"  ".repeat(path.length - 1)}${styles.green.open} ✓ ${styles.green.close}${
 									path[path.length - 1]
 								}`,
 							);
+
 							const test = compiledFileTests.lookup(file, path);
+
 							if (test) {
 								run.passed(test);
 								leafTests.delete(test);
@@ -142,6 +160,7 @@ export class TestRunner {
 						}
 						case MochaEvent.Fail: {
 							ranAnyTest = true;
+
 							const {
 								err,
 								path,
@@ -151,6 +170,7 @@ export class TestRunner {
 								actual,
 								file,
 							} = parsed[1];
+
 							const tcase = compiledFileTests.lookup(file, path);
 
 							enqueueLine(
@@ -158,11 +178,14 @@ export class TestRunner {
 									styles.red.close
 								}`,
 							);
+
 							const rawErr = stack || err;
+
 							const locationsReplaced = replaceAllLocations(
 								this.smStore,
 								forceCRLF(rawErr),
 							);
+
 							if (rawErr) {
 								outputQueue.enqueue(async () =>
 									run.appendOutput(
@@ -178,7 +201,9 @@ export class TestRunner {
 							}
 
 							leafTests.delete(tcase);
+
 							const hasDiff = actual !== expected;
+
 							const testFirstLine =
 								tcase.range &&
 								new vscode.Location(
@@ -199,6 +224,7 @@ export class TestRunner {
 							);
 							outputQueue.enqueue(async () => {
 								const location = await locationProm;
+
 								let message: vscode.TestMessage;
 
 								if (hasDiff) {
@@ -223,11 +249,14 @@ export class TestRunner {
 								message.location = location ?? testFirstLine;
 								run.failed(tcase!, message, duration);
 							});
+
 							break;
 						}
 						case MochaEvent.End:
 							isOutsideTestRun = true;
+
 							break;
+
 						default:
 							// just normal output
 							outputQueue.enqueue(() =>
@@ -276,6 +305,7 @@ export class TestRunner {
 						"Test process exited unexpectedly, [view output](command:testing.showMostRecentOutput)",
 					);
 					md.isTrusted = true;
+
 					for (const t of leafTests) {
 						run.errored(t, new vscode.TestMessage(md));
 					}
@@ -309,6 +339,7 @@ export class TestRunner {
 				"--list-configuration",
 			])
 		)?.[0];
+
 		if (
 			token.isCancellationRequested ||
 			!thisConfig ||
@@ -318,9 +349,12 @@ export class TestRunner {
 		}
 
 		const ds = new DisposableStore();
+
 		return new Promise<void>((resolve, reject) => {
 			const sessionKey = randomUUID();
+
 			const includedSessions = new Set<vscode.DebugSession | undefined>();
+
 			const launchConfig = this.launchConfig.value || {};
 
 			Promise.resolve(
@@ -359,6 +393,7 @@ export class TestRunner {
 			ds.add(
 				vscode.debug.onDidTerminateDebugSession((session) => {
 					includedSessions.delete(session);
+
 					if (didFindFirst && includedSessions.size === 0) {
 						resolve();
 					}
@@ -392,6 +427,7 @@ export class TestRunner {
 								}
 
 								let newLine = output.indexOf("\n");
+
 								while (newLine !== -1) {
 									onLine(output.substring(0, newLine));
 									output = output.substring(newLine + 1);
@@ -412,6 +448,7 @@ export class TestRunner {
 		token,
 	}: ISpawnOptions) {
 		const cli = await config.spawnCli(args);
+
 		if (token.isCancellationRequested) {
 			return cli.kill();
 		}
@@ -419,6 +456,7 @@ export class TestRunner {
 		token.onCancellationRequested(() => cli.kill());
 		cli.stderr.pipe(split2()).on("data", onLine);
 		cli.stdout.pipe(split2()).on("data", onLine);
+
 		return new Promise<void>((resolve, reject) => {
 			cli.on("error", reject);
 			cli.on("exit", (code) => {
@@ -445,18 +483,25 @@ export class TestRunner {
 		run: vscode.TestRun,
 	) {
 		const tagId = String(configIndex);
+
 		const reporter = await config.resolveCli("fullJsonStream");
+
 		const args = [...baseArgs, "--reporter", reporter];
+
 		const exclude = new Set(request.exclude);
+
 		const leafTests = new Set<vscode.TestItem>();
+
 		const include =
 			request.include?.slice() ?? [...ctrl.items].map(([, item]) => item);
 
 		const grepRe: string[] = [];
+
 		const compiledFileTests = new CompiledFileTests();
 
 		for (const test of include) {
 			const data = testMetadata.get(test);
+
 			if (!data || exclude.has(test)) {
 				continue;
 			}
@@ -486,8 +531,10 @@ export class TestRunner {
 
 			for (let i = test as vscode.TestItem | undefined; i; i = i.parent) {
 				const metadata = testMetadata.get(i);
+
 				if (metadata?.type === ItemType.File) {
 					compiledFileTests.push(metadata.compiledIn.fsPath, i);
+
 					break;
 				}
 			}
@@ -522,10 +569,12 @@ class CompiledFileTests {
 	public lookup(file: string | undefined, path: readonly string[]) {
 		if (file) {
 			const items = this.value.get(file);
+
 			return items && this.getPathInTestItems(items, path);
 		} else {
 			for (const items of this.value.values()) {
 				const found = this.getPathInTestItems(items, path);
+
 				if (found) {
 					return found;
 				}
@@ -542,6 +591,7 @@ class CompiledFileTests {
 	) {
 		for (const item of items) {
 			let candidate: vscode.TestItem | undefined = item;
+
 			for (let i = 0; i < path.length && candidate; i++) {
 				candidate = candidate.children.get(path[i]);
 			}
@@ -554,6 +604,7 @@ class CompiledFileTests {
 	/** Associated a test with the given file path. */
 	public push(path: string, test: vscode.TestItem) {
 		let set = this.value.get(path);
+
 		if (!set) {
 			this.value.set(path, (set = new Set()));
 		}
@@ -564,6 +615,7 @@ class CompiledFileTests {
 
 const getFullName = (test: vscode.TestItem) => {
 	let name = test.label;
+
 	while (
 		test.parent &&
 		testMetadata.get(test.parent)?.type === ItemType.Suite
@@ -579,8 +631,10 @@ const forEachLeaf = (
 	fn: (test: vscode.TestItem) => void,
 ) => {
 	const queue: vscode.TestItem[] = [test];
+
 	while (queue.length) {
 		const current = queue.shift()!;
+
 		if (current.children.size > 0) {
 			for (const [, child] of current.children) {
 				queue.push(child);
@@ -592,7 +646,9 @@ const forEachLeaf = (
 };
 
 const escapeRe = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 const forceCRLF = (str: string) => str.replace(/(?<!\r)\n/gm, "\r\n");
+
 const locationRe = /(file:\/{3}.+):([0-9]+):([0-9]+)/g;
 
 /**
@@ -604,6 +660,7 @@ async function sourcemapStack(store: SourceMapStore, str: string) {
 	const replacements = await Promise.all(
 		[...str.matchAll(locationRe)].map(async (match) => {
 			const location = await deriveSourceLocation(store, match);
+
 			if (!location) {
 				return;
 			}
@@ -630,11 +687,14 @@ async function sourcemapStack(store: SourceMapStore, str: string) {
  */
 async function replaceAllLocations(store: SourceMapStore, str: string) {
 	const output: (string | Promise<string>)[] = [];
+
 	let lastIndex = 0;
 
 	for (const match of str.matchAll(locationRe)) {
 		const locationPromise = deriveSourceLocation(store, match);
+
 		const startIndex = match.index || 0;
+
 		const endIndex = startIndex + match[0].length;
 
 		if (startIndex > lastIndex) {
@@ -658,6 +718,7 @@ async function replaceAllLocations(store: SourceMapStore, str: string) {
 	}
 
 	const values = await Promise.all(output);
+
 	return values.join("");
 }
 
@@ -675,7 +736,9 @@ async function tryDeriveStackLocation(
 
 	return new Promise<vscode.Location | undefined>((resolve) => {
 		const matches = [...stack.matchAll(locationRe)];
+
 		let todo = matches.length;
+
 		if (todo === 0) {
 			return resolve(undefined);
 		}
@@ -683,17 +746,20 @@ async function tryDeriveStackLocation(
 		let best:
 			| undefined
 			| { location: vscode.Location; i: number; score: number };
+
 		for (const [i, match] of matches.entries()) {
 			deriveSourceLocation(store, match)
 				.catch(() => undefined)
 				.then((location) => {
 					if (location) {
 						let score = 0;
+
 						if (
 							tcase.uri &&
 							tcase.uri.toString() === location.uri.toString()
 						) {
 							score = 1;
+
 							if (
 								tcase.range &&
 								tcase.range.contains(location?.range)
@@ -723,11 +789,15 @@ async function deriveSourceLocation(
 	parts: RegExpMatchArray,
 ) {
 	const [, fileUriStr, line, col] = parts;
+
 	const fileUri = fileUriStr.startsWith("file:")
 		? vscode.Uri.parse(fileUriStr)
 		: vscode.Uri.file(fileUriStr);
+
 	const maintainer = store.maintain(fileUri);
+
 	const mapping = await (maintainer.value || maintainer.refresh());
+
 	const value =
 		mapping?.originalPositionFor(Number(line), Number(col)) ||
 		new vscode.Location(
@@ -748,12 +818,15 @@ const outputToString = (output: unknown) =>
 
 const tryMakeMarkdown = (message: string) => {
 	const lines = message.split("\n");
+
 	const start = lines.findIndex((l) => l.includes("+ actual"));
+
 	if (start === -1) {
 		return message;
 	}
 
 	lines.splice(start, 1, "```diff");
 	lines.push("```");
+
 	return new vscode.MarkdownString(lines.join("\n"));
 };

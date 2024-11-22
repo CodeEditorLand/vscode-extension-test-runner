@@ -34,9 +34,11 @@ export class SourceMapStore {
 	 */
 	public maintain(uri: vscode.Uri): ISourceMapMaintainer {
 		const maps = this.maps;
+
 		const key = uri.toString();
 
 		let rec = maps.get(key)!;
+
 		if (!rec) {
 			rec = { rc: 0 };
 			maps.set(key, rec);
@@ -52,6 +54,7 @@ export class SourceMapStore {
 				const contentsProm =
 					fs.readFile(uri.fsPath, "utf8") ||
 					Promise.resolve(contents);
+
 				return (rec.accessor = contentsProm.then(
 					(c) => parseSourceMap(uri, c),
 					() => identityMapping(uri),

@@ -28,6 +28,7 @@ import { SyncController } from "./syncController";
 const diagnosticCollection = vscode.languages.createDiagnosticCollection(
 	"ext-test-duplicates",
 );
+
 const syncFileDebounce = 500;
 
 export class Controller {
@@ -114,6 +115,7 @@ export class Controller {
 
 	public async syncFile(uri: vscode.Uri, contents?: () => string) {
 		let db = this.filesDebounce.get(uri.toString());
+
 		if (!db) {
 			db = new SyncController((lastContents) =>
 				this._syncFile(uri, lastContents?.()),
@@ -129,11 +131,13 @@ export class Controller {
 		}
 
 		const includeViaConfigs = this.currentConfig?.includesTestFile(uri);
+
 		if (!includeViaConfigs) {
 			return;
 		}
 
 		const previous = this.testsInFiles.get(uri.toString());
+
 		const extracted = await extract({
 			file: uri.fsPath,
 			contents,
@@ -151,12 +155,16 @@ export class Controller {
 
 		if (!extracted.nodes.length) {
 			this.deleteFileTests(uri.toString());
+
 			return;
 		}
 
 		const smMaintainer = previous?.sourceMap ?? this.smStore.maintain(uri);
+
 		const sourceMap = await smMaintainer.refresh(contents);
+
 		const tags = includeViaConfigs.map((c) => new vscode.TestTag(`${c}`));
+
 		const add = (
 			parent: vscode.TestItem,
 			node: IParsedNode,
@@ -164,6 +172,7 @@ export class Controller {
 			end: vscode.Location,
 		): vscode.TestItem => {
 			let item = parent.children.get(node.name);
+
 			if (!item) {
 				item = this.ctrl.createTestItem(
 					node.name,
@@ -183,12 +192,15 @@ export class Controller {
 			item.error = node.error;
 
 			const seen = new Map<string, vscode.TestItem>();
+
 			for (const child of node.children) {
 				const existing = seen.get(child.name);
+
 				const start = sourceMap.originalPositionFor(
 					child.startLine,
 					child.startColumn - 1,
 				);
+
 				const end =
 					child.endLine !== undefined && child.endColumn !== undefined
 						? sourceMap.originalPositionFor(
@@ -196,8 +208,10 @@ export class Controller {
 								child.endColumn - 1,
 							)
 						: start;
+
 				if (existing) {
 					addDuplicateDiagnostic(start, existing);
+
 					continue;
 				}
 
@@ -217,11 +231,13 @@ export class Controller {
 		// source file. This is probably a good assumption. Likewise we assume that a single
 		// a single describe/test is not split between different files.
 		const newTestsInFile = new Map<string, vscode.TestItem>();
+
 		for (const node of extracted.nodes) {
 			const start = sourceMap.originalPositionFor(
 				node.startLine,
 				node.startColumn - 1,
 			);
+
 			const end =
 				node.endLine !== undefined && node.endColumn !== undefined
 					? sourceMap.originalPositionFor(
@@ -229,6 +245,7 @@ export class Controller {
 							node.endColumn - 1,
 						)
 					: start;
+
 			const file = last(
 				this.getContainingItemsForFile(start.uri, {
 					compiledFile: uri,
@@ -257,20 +274,25 @@ export class Controller {
 
 	private deleteFileTests(uriStr: string) {
 		const previous = this.testsInFiles.get(uriStr);
+
 		if (!previous) {
 			return;
 		}
 
 		this.testsInFiles.delete(uriStr);
+
 		for (const [id, item] of previous.items) {
 			diagnosticCollection.delete(item.uri!);
+
 			const itemsIt = this.getContainingItemsForFile(item.uri!);
 
 			// keep 'deleteFrom' as the node to remove if there are no nested children
 			let deleteFrom:
 				| { items: vscode.TestItemCollection; id: string }
 				| undefined;
+
 			let last: vscode.TestItemCollection | undefined;
+
 			for (const { children, item } of itemsIt) {
 				if (item && children.size === 1) {
 					deleteFrom ??= {
@@ -309,6 +331,7 @@ export class Controller {
 		watcher.onDidChange((uri) => this._syncFile(uri));
 		watcher.onDidDelete((uri) => {
 			const prefix = uri.toString();
+
 			for (const key of this.testsInFiles.keys()) {
 				if (
 					key === prefix ||
@@ -324,6 +347,7 @@ export class Controller {
 
 	private handleScanError() {
 		this.watcher.clear();
+
 		for (const key of this.testsInFiles.keys()) {
 			this.deleteFileTests(key);
 		}
@@ -344,13 +368,16 @@ export class Controller {
 	private applyRunHandlers(configs: ConfigurationList) {
 		const oldRunHandlers = this.runProfiles;
 		this.runProfiles = new Map();
+
 		for (const [index, { config }] of configs.value.entries()) {
 			if (!isDesktopConfig(config)) {
 				continue; // web runs currently not supported by the CLI
 			}
 
 			const originalName = config.label || `Config #${index + 1}`;
+
 			let name = originalName;
+
 			for (let i = 2; this.runProfiles.has(name); i++) {
 				name = `${originalName} #${i}`;
 			}
@@ -365,6 +392,7 @@ export class Controller {
 				name,
 				userDataDir,
 			);
+
 			const doDebug = this.runner.makeHandler(
 				this.ctrl,
 				this.configFile,
@@ -373,6 +401,7 @@ export class Controller {
 				name,
 				userDataDir,
 			);
+
 			const doCoverage = this.runner.makeHandler(
 				this.ctrl,
 				this.configFile,
@@ -384,6 +413,7 @@ export class Controller {
 			);
 
 			const prev = oldRunHandlers.get(name);
+
 			if (prev) {
 				prev.run.runHandler = doRun;
 				prev.debug.runHandler = doDebug;
@@ -391,6 +421,7 @@ export class Controller {
 
 				this.runProfiles.set(name, prev);
 				oldRunHandlers.delete(name);
+
 				continue;
 			}
 
@@ -437,21 +468,26 @@ export class Controller {
 		const uddArg = "--user-data-dir";
 
 		const idx = args.indexOf(uddArg);
+
 		if (idx !== -1) {
 			return args[idx + 1];
 		}
 
 		const prefix = `${uddArg}=`;
+
 		const prefixed = args.find((a) => a.startsWith(prefix));
+
 		return prefixed ? prefixed.slice(prefix.length) : undefined;
 	}
 
 	private async readConfig() {
 		let configs: ConfigurationList;
+
 		try {
 			configs = await this.configFile.read();
 		} catch {
 			this.handleScanError();
+
 			return;
 		}
 
@@ -475,13 +511,17 @@ export class Controller {
 		}
 
 		const configs = await this.readConfig();
+
 		if (!configs) {
 			return;
 		}
 
 		const toRemove = new Set(this.testsInFiles.keys());
+
 		const rough = configs.roughIncludedFiles();
+
 		const seen = new Set<string>();
+
 		const todo2: Promise<void>[] = [];
 
 		const processFile = (file: vscode.Uri) => {
@@ -493,11 +533,13 @@ export class Controller {
 		};
 
 		rough.files.forEach((f) => processFile(vscode.Uri.file(f)));
+
 		const todo = rough.patterns.map(async (pattern) => {
 			const relativePattern = new vscode.RelativePattern(
 				this.wf,
 				pattern,
 			);
+
 			for (const file of await vscode.workspace.findFiles(
 				relativePattern,
 			)) {

@@ -31,11 +31,13 @@ parentPort!.on(
 			.update(contents)
 			.digest()
 			.readInt32BE(0);
+
 		if (hash === skipIfShaMatches) {
 			return respond({ req, hash, nodes: undefined });
 		}
 
 		let nodes: IParsedNode[] | undefined;
+
 		if (symbols.extractWith === "evaluation") {
 			try {
 				nodes = extractWithEvaluation(file, contents, symbols);

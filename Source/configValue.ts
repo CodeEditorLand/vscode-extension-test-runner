@@ -9,6 +9,7 @@ const walkObject = <T>(value: T, replacer: (value: unknown) => any): T => {
 
 	if (value && typeof value === "object") {
 		const newValue = {} as Record<string, unknown>;
+
 		for (const [k, v] of Object.entries(value)) {
 			newValue[replacer(k)] = walkObject(v, replacer);
 		}

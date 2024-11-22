@@ -33,14 +33,19 @@ export function* getContainingItemsForFile(
 	item?: vscode.TestItem;
 }> {
 	const folderPath = configUri.path.split("/").slice(0, -1);
+
 	const filePath = uri.path.split("/");
 
 	let children = ctrl.items;
+
 	yield { children };
+
 	for (let i = folderPath.length; i < filePath.length; i++) {
 		const existing = children.get(filePath[i]);
+
 		if (existing) {
 			children = existing.children;
+
 			yield { children, item: existing };
 		} else if (!createOpts) {
 			break;
@@ -62,6 +67,7 @@ export function* getContainingItemsForFile(
 			);
 			children.add(item);
 			children = item.children;
+
 			yield { children, item };
 		}
 	}

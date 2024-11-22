@@ -54,6 +54,7 @@ export class SyncController<TLastCallArg> implements Disposable {
 		this.doSync(toResolve[toResolve.length - 1].arg).finally(() => {
 			toResolve.forEach((r) => r.fn());
 			this.isRunningCall = false;
+
 			if (this.pendingToResolve.length) {
 				this.doDebounce();
 			}

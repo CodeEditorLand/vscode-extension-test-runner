@@ -68,6 +68,7 @@ export const extractWithEvaluation = (
 	const stack: IParsedNode[] = [
 		{ children: [] } as Partial<IParsedNode> as IParsedNode,
 	];
+
 	const placeholders = new WeakSet<object>();
 
 	// A placeholder object that returns itself for all functions calls and method accesses.
@@ -77,6 +78,7 @@ export const extractWithEvaluation = (
 		const ph = new Proxy(placeholder, {
 			get: (obj, target) => {
 				const desc = Object.getOwnPropertyDescriptor(obj, target);
+
 				if (desc && !desc.writable && !desc.configurable) {
 					return desc.value; // avoid invariant volation https://stackoverflow.com/q/75148897
 				}
@@ -88,6 +90,7 @@ export const extractWithEvaluation = (
 			set: () => true,
 		});
 		placeholders.add(ph);
+
 		return ph;
 	}
 
@@ -97,6 +100,7 @@ export const extractWithEvaluation = (
 		return new Proxy(obj, {
 			get(target, prop, receiver) {
 				const value = Reflect.get(target, prop, receiver);
+
 				if (typeof value === "function") {
 					return function (...args: any[]) {
 						return value.apply(
@@ -123,17 +127,22 @@ export const extractWithEvaluation = (
 			}
 
 			const frame = errorParser.parse(new Error())[1];
+
 			if (!frame || !frame.lineNumber) {
 				return placeholder();
 			}
 
 			const startLine = frame.lineNumber;
+
 			const startColumn = frame.columnNumber || 1;
 
 			// approximate the length of the test case:
 			const functionLines = String(callback).split("\n");
+
 			const endLine = frame.lineNumber + functionLines.length - 1;
+
 			let endColumn = functionLines[functionLines.length - 1].length;
+
 			if (endLine === startLine) {
 				endColumn = Number.MAX_SAFE_INTEGER; // assume it takes the entire line of a single-line test case
 			}
@@ -147,12 +156,15 @@ export const extractWithEvaluation = (
 				endColumn,
 				children: [],
 			};
+
 			if (directive) {
 				node.directive = directive;
 			}
 			stack[stack.length - 1].children.push(node);
+
 			if (kind === NodeKind.Suite) {
 				stack.push(node);
+
 				try {
 					callback.call(placeholder());
 				} catch (e) {
@@ -162,6 +174,7 @@ export const extractWithEvaluation = (
 				}
 			}
 		};
+
 		if (!directive) {
 			fn.skip = makeTesterFunction(kind, "skip");
 			fn.only = makeTesterFunction(kind, "only");
@@ -172,6 +185,7 @@ export const extractWithEvaluation = (
 
 	// currently these are the same, but they might be different in the future?
 	const suiteFunction = makeTesterFunction(NodeKind.Suite);
+
 	const testFunction = makeTesterFunction(NodeKind.Test);
 
 	const contextObj = new Proxy({} as any, {

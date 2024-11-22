@@ -43,11 +43,13 @@ const traverse = (
 	visitor.enter(node);
 
 	const keys = evk.KEYS[node.type];
+
 	if (keys) {
 		for (const key of keys) {
 			const child = (node as unknown as Record<string, Node | Node[]>)[
 				key
 			];
+
 			if (child instanceof Array) {
 				child.forEach((c) => traverse(c, visitor));
 			} else if (child) {
@@ -68,6 +70,7 @@ export const extractWithAst = (text: string, symbols: ITestSymbols) => {
 			: symbols.test.includes(name)
 				? NodeKind.Test
 				: undefined;
+
 	const stack: { node: Node; r: IParsedNode }[] = [];
 	stack.push({ node: undefined, r: { children: [] } } as any);
 
@@ -78,7 +81,9 @@ export const extractWithAst = (text: string, symbols: ITestSymbols) => {
 			}
 
 			let directive: string | undefined;
+
 			let kind: NodeKind | undefined;
+
 			if (node.callee.type === C.Identifier) {
 				kind = interestingName(node.callee.name);
 			} else if (
@@ -95,6 +100,7 @@ export const extractWithAst = (text: string, symbols: ITestSymbols) => {
 			}
 
 			const name = getStringish(node.arguments[0]);
+
 			if (name === undefined) {
 				return;
 			}
@@ -108,6 +114,7 @@ export const extractWithAst = (text: string, symbols: ITestSymbols) => {
 				endColumn: node.loc!.end.column + 1,
 				name,
 			};
+
 			if (directive) {
 				child.directive = directive;
 			}

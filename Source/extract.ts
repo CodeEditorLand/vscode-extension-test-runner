@@ -48,13 +48,16 @@ export interface IFromExtractWorkerMsg {
 }
 
 let worker: Worker | undefined;
+
 let workerTimeout: NodeJS.Timeout | undefined;
+
 let reqCounter = 0;
 
 const WORKER_IDLE_TIME = 10_000;
 
 export const extract = (opts: IExtractOpts) => {
 	worker ??= new Worker(join(__dirname, "extract", "worker.js"));
+
 	if (workerTimeout) {
 		clearTimeout(workerTimeout);
 	}

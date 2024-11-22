@@ -46,9 +46,11 @@ export class Coverage {
 					await this.configFile.resolveCli(),
 					"../../package.json",
 				);
+
 				const { version } = JSON.parse(
 					await fs.readFile(packageJsonPath, "utf8"),
 				);
+
 				if (/^0\.0\.[0-4]$/.test(version)) {
 					vscode.window.showInformationMessage(
 						`Your @vscode/test-cli version is ${version}. Please update to CLI version 0.0.5 or higher to enable coverage.`,

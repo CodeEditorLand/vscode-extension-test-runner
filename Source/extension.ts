@@ -20,10 +20,12 @@ const enum FolderSyncState {
 
 export function activate(context: vscode.ExtensionContext) {
 	const smStore = new SourceMapStore();
+
 	const wrapperCfg = new ConfigValue<string | string[] | undefined>(
 		"wrapper",
 		undefined,
 	);
+
 	const runner = new TestRunner(
 		smStore,
 		new ConfigValue("debugOptions", {}),
@@ -31,6 +33,7 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 
 	let ctrls: Controller[] = [];
+
 	let resyncState: FolderSyncState = FolderSyncState.Idle;
 
 	const syncWorkspaceFolders = async () => {
@@ -51,11 +54,13 @@ export function activate(context: vscode.ExtensionContext) {
 				const files = await vscode.workspace.findFiles(
 					new vscode.RelativePattern(folder, configFilePattern),
 				);
+
 				for (const file of files) {
 					const rel = path.relative(
 						folder.uri.fsPath,
 						path.dirname(file.fsPath),
 					);
+
 					const ctrl = vscode.tests.createTestController(
 						file.toString(),
 						rel
@@ -82,6 +87,7 @@ export function activate(context: vscode.ExtensionContext) {
 		// cast is needed since TS incorrectly keeps resyncState narrowed to Syncing
 		const prevState = resyncState as FolderSyncState;
 		resyncState = FolderSyncState.Idle;
+
 		if (prevState === FolderSyncState.ReSyncNeeded) {
 			syncWorkspaceFolders();
 		}
@@ -96,13 +102,16 @@ export function activate(context: vscode.ExtensionContext) {
 
 	const showConfigError = async (configUriStr: string) => {
 		const configUri = vscode.Uri.parse(configUriStr);
+
 		const ctrl = ctrls.find(
 			(c) => c.configFile.uri.toString() === configUri.toString(),
 		);
+
 		try {
 			await ctrl?.configFile.read();
 		} catch (e) {
 			await openUntitledEditor(String(e));
+
 			return;
 		}
 
@@ -115,6 +124,7 @@ export function activate(context: vscode.ExtensionContext) {
 		// high confidence that we should find something.
 		for (let retries = 0; retries < 10; retries++) {
 			await syncWorkspaceFolders();
+
 			if (ctrls.length > 0) {
 				break;
 			}

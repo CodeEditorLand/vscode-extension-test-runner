@@ -60,6 +60,7 @@ export class ConfigurationFile implements vscode.Disposable {
 		const watcher = this.ds.add(
 			vscode.workspace.createFileSystemWatcher(uri.fsPath),
 		);
+
 		let changeDebounce: NodeJS.Timeout | undefined;
 		this.ds.add(
 			watcher.onDidChange(() => {
@@ -110,11 +111,15 @@ export class ConfigurationFile implements vscode.Disposable {
 	 */
 	public async spawnCli(args: readonly string[]) {
 		const cliPath = await this.resolveCli();
+
 		const wrapper = this.wrapper.value;
+
 		return await new Promise<ChildProcessWithoutNullStreams>(
 			(resolve, reject) => {
 				let argvN = [cliPath, "--config", this.uri.fsPath, ...args];
+
 				let argv0 = process.execPath;
+
 				if (wrapper instanceof Array) {
 					argvN = [...wrapper.slice(1), process.execPath, ...argvN];
 					argv0 = wrapper[0];
@@ -139,6 +144,7 @@ export class ConfigurationFile implements vscode.Disposable {
 	 */
 	public async captureCliJson<T>(args: readonly string[]) {
 		const p = await this.spawnCli(args);
+
 		return await new Promise<T>((resolve, reject) => {
 			const output: Buffer[] = [];
 			p.stdout.on("data", (chunk) => output.push(chunk));
@@ -146,6 +152,7 @@ export class ConfigurationFile implements vscode.Disposable {
 			p.on("error", reject);
 			p.on("close", (code) => {
 				const joined = Buffer.concat(output).toString();
+
 				if (code !== 0) {
 					return reject(new ConfigProcessReadError(joined));
 				}
@@ -165,6 +172,7 @@ export class ConfigurationFile implements vscode.Disposable {
 		const configs = await this.captureCliJson<IResolvedConfiguration[]>([
 			"--list-configuration",
 		]);
+
 		return new ConfigurationList(this.uri, configs, this.wf);
 	}
 
@@ -226,11 +234,13 @@ export class ConfigurationList {
 				typeof config.files === "string"
 					? [config.files]
 					: config.files;
+
 			return files.map((f) => {
 				if (path.isAbsolute(f)) {
 					return { glob: false, value: path.normalize(f) };
 				} else {
 					const cfgDir = path.dirname(this.uri.fsPath);
+
 					return {
 						glob: true,
 						value: toForwardSlashes(path.join(cfgDir, f)),
@@ -249,7 +259,9 @@ export class ConfigurationList {
 	 */
 	public roughIncludedFiles() {
 		const patterns = new Set<string>();
+
 		const files = new Set<string>();
+
 		for (const patternList of this.patterns) {
 			for (const p of patternList) {
 				if (p.value.startsWith("!")) {
@@ -270,12 +282,15 @@ export class ConfigurationList {
 	/** Gets the configs the given test file is included by, if any. */
 	public includesTestFile(uri: vscode.Uri) {
 		const file = toForwardSlashes(uri.fsPath);
+
 		let indexes: number[] | undefined;
 
 		for (const [i, patterns] of this.patterns.entries()) {
 			let matched = false;
+
 			for (let { glob, value } of patterns) {
 				let negated = false;
+
 				if (value.startsWith("!")) {
 					negated = true;
 					value = value.slice(1);

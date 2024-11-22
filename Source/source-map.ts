@@ -35,6 +35,7 @@ const smMappingAccessor = (
 			line: smLine,
 			column: smCol,
 		} = originalPositionFor(sm, { line, column });
+
 		if (!source) {
 			// VS Code positions are base 0, adjust the line
 			return new vscode.Location(
@@ -55,11 +56,13 @@ export const parseSourceMap = (
 	contents: string,
 ): IMappingAccessor | Promise<IMappingAccessor> => {
 	const start = contents.lastIndexOf(smUrlComment);
+
 	if (start === -1) {
 		return identityMapping(path);
 	}
 
 	let end = contents.indexOf("\n", start + smUrlComment.length);
+
 	if (end === -1) {
 		end = contents.length;
 	}
@@ -67,14 +70,18 @@ export const parseSourceMap = (
 	const sourceMapUrl = contents
 		.slice(start + smUrlComment.length, end)
 		.trim();
+
 	return parseSourceMapURL(path, sourceMapUrl);
 };
 
 export const parseSourceMapURL = (path: vscode.Uri, sourceMapUrl: string) => {
 	const pathAsStr = path.toString();
+
 	if (sourceMapUrl.startsWith("data:")) {
 		const data = dataUriToBuffer(sourceMapUrl);
+
 		const decoder = new TextDecoder();
+
 		return smMappingAccessor(
 			path,
 			new TraceMap(decoder.decode(data.buffer), pathAsStr),
@@ -84,6 +91,7 @@ export const parseSourceMapURL = (path: vscode.Uri, sourceMapUrl: string) => {
 	const sourceMapPath = fileURLToPath(
 		new URL(sourceMapUrl, pathAsStr).toString(),
 	);
+
 	try {
 		return fs
 			.readFile(sourceMapPath, "utf8")
