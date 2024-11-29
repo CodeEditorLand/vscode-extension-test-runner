@@ -33,6 +33,7 @@ const syncFileDebounce = 500;
 
 export class Controller {
 	private readonly disposable = new DisposableStore();
+
 	public readonly configFile: ConfigurationFile;
 
 	/**
@@ -47,13 +48,18 @@ export class Controller {
 	private readonly extractMode = this.disposable.add(
 		new ConfigValue("extractSettings", defaultTestSymbols),
 	);
+
 	private readonly watcher = this.disposable.add(new MutableDisposable());
+
 	private readonly didChangeEmitter = new vscode.EventEmitter<void>();
+
 	private runProfiles = new Map<
 		string,
 		{
 			run: vscode.TestRunProfile;
+
 			debug: vscode.TestRunProfile;
+
 			cover: vscode.TestRunProfile;
 		}
 	>();
@@ -66,7 +72,9 @@ export class Controller {
 		/* uri */ string,
 		{
 			hash: number;
+
 			sourceMap: ISourceMapMaintainer;
+
 			items: Map<string, vscode.TestItem>;
 		}
 	>();
@@ -94,18 +102,25 @@ export class Controller {
 		wrapper: ConfigValue<string | string[] | undefined>,
 	) {
 		this.disposable.add(ctrl);
+
 		this.configFile = this.disposable.add(
 			new ConfigurationFile(configFileUri, wf, wrapper),
 		);
+
 		this.onDidDelete = this.configFile.onDidDelete;
 
 		const rescan = () => this.scanFiles();
+
 		this.disposable.add(this.configFile.onDidChange(rescan));
+
 		this.disposable.add(this.extractMode.onDidChange(rescan));
+
 		ctrl.refreshHandler = () => {
 			this.configFile.forget();
+
 			rescan();
 		};
+
 		this.scanFiles();
 	}
 
@@ -179,16 +194,21 @@ export class Controller {
 					node.name,
 					start.uri,
 				);
+
 				item.tags = tags;
+
 				testMetadata.set(item, {
 					type:
 						node.kind === NodeKind.Suite
 							? ItemType.Suite
 							: ItemType.Test,
 				});
+
 				parent.children.add(item);
 			}
+
 			item.range = new vscode.Range(start.range.start, end.range.end);
+
 			item.error = node.error;
 
 			const seen = new Map<string, vscode.TestItem>();
@@ -252,7 +272,9 @@ export class Controller {
 					tags,
 				}),
 			)!.item!;
+
 			diagnosticCollection.delete(start.uri);
+
 			newTestsInFile.set(node.name, add(file, node, start, end));
 		}
 
@@ -269,6 +291,7 @@ export class Controller {
 			hash: extracted.hash,
 			sourceMap: smMaintainer,
 		});
+
 		this.didChangeEmitter.fire();
 	}
 
@@ -328,7 +351,9 @@ export class Controller {
 			));
 
 		watcher.onDidCreate((uri) => this._syncFile(uri));
+
 		watcher.onDidChange((uri) => this._syncFile(uri));
+
 		watcher.onDidDelete((uri) => {
 			const prefix = uri.toString();
 
@@ -351,22 +376,27 @@ export class Controller {
 		for (const key of this.testsInFiles.keys()) {
 			this.deleteFileTests(key);
 		}
+
 		const item = (this.errorItem = this.ctrl.createTestItem(
 			"error",
 			"Extension Test Error",
 		));
+
 		item.error = new vscode.MarkdownString(
 			`[View details](command:${showConfigErrorCommand}?${encodeURIComponent(
 				JSON.stringify([this.configFile.uri.toString()]),
 			)})`,
 		);
+
 		item.error.isTrusted = true;
+
 		this.ctrl.items.add(item);
 	}
 
 	/** Creates run profiles for each configuration in the extension tests */
 	private applyRunHandlers(configs: ConfigurationList) {
 		const oldRunHandlers = this.runProfiles;
+
 		this.runProfiles = new Map();
 
 		for (const [index, { config }] of configs.value.entries()) {
@@ -416,10 +446,13 @@ export class Controller {
 
 			if (prev) {
 				prev.run.runHandler = doRun;
+
 				prev.debug.runHandler = doDebug;
+
 				prev.cover.runHandler = doCoverage;
 
 				this.runProfiles.set(name, prev);
+
 				oldRunHandlers.delete(name);
 
 				continue;
@@ -493,6 +526,7 @@ export class Controller {
 
 		if (configs !== this.currentConfig) {
 			this.applyRunHandlers(configs);
+
 			this.currentConfig = configs;
 		}
 
@@ -502,6 +536,7 @@ export class Controller {
 	public async scanFiles() {
 		if (this.errorItem) {
 			this.ctrl.items.delete(this.errorItem.id);
+
 			this.errorItem = undefined;
 		}
 
@@ -527,7 +562,9 @@ export class Controller {
 		const processFile = (file: vscode.Uri) => {
 			if (!seen.has(file.toString())) {
 				todo2.push(this._syncFile(file));
+
 				toRemove.delete(file.toString());
+
 				seen.add(file.toString());
 			}
 		};

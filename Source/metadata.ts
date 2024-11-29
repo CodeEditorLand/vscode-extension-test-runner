@@ -19,6 +19,7 @@ export const testMetadata = new WeakMap<vscode.TestItem, ItemMetadata>();
 
 export interface ICreateOpts {
 	compiledFile: vscode.Uri;
+
 	tags: vscode.TestTag[];
 }
 
@@ -30,6 +31,7 @@ export function* getContainingItemsForFile(
 	createOpts?: ICreateOpts,
 ): IterableIterator<{
 	children: vscode.TestItemCollection;
+
 	item?: vscode.TestItem;
 }> {
 	const folderPath = configUri.path.split("/").slice(0, -1);
@@ -55,7 +57,9 @@ export function* getContainingItemsForFile(
 				filePath[i],
 				uri.with({ path: filePath.slice(0, i + 1).join("/") }),
 			);
+
 			item.tags = createOpts.tags;
+
 			testMetadata.set(
 				item,
 				i === filePath.length - 1
@@ -65,7 +69,9 @@ export function* getContainingItemsForFile(
 						}
 					: { type: ItemType.Directory },
 			);
+
 			children.add(item);
+
 			children = item.children;
 
 			yield { children, item };

@@ -16,7 +16,9 @@ const syncDebounce = 500;
  */
 export class SyncController<TLastCallArg> implements Disposable {
 	private isRunningCall = false;
+
 	private syncTimeout: NodeJS.Timeout | undefined;
+
 	private pendingToResolve: { fn: () => void; arg: TLastCallArg }[] = [];
 
 	constructor(
@@ -37,6 +39,7 @@ export class SyncController<TLastCallArg> implements Disposable {
 
 	public dispose(): void {
 		this.pendingToResolve.forEach((r) => r.fn());
+
 		this.pendingToResolve = [];
 
 		if (this.syncTimeout) {
@@ -46,13 +49,16 @@ export class SyncController<TLastCallArg> implements Disposable {
 
 	private sync(): void {
 		this.syncTimeout = undefined;
+
 		this.isRunningCall = true;
 
 		const toResolve = this.pendingToResolve;
+
 		this.pendingToResolve = [];
 
 		this.doSync(toResolve[toResolve.length - 1].arg).finally(() => {
 			toResolve.forEach((r) => r.fn());
+
 			this.isRunningCall = false;
 
 			if (this.pendingToResolve.length) {

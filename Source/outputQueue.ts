@@ -9,6 +9,7 @@
  */
 export class OutputQueue {
 	private queue: (() => Promise<void> | void)[] = [];
+
 	private drained?: Promise<void> | void;
 
 	/** Enqueues a function to be called */

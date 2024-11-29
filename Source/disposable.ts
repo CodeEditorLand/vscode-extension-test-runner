@@ -13,6 +13,7 @@ export class DisposableStore {
 		} else {
 			this.disposables.push(disposable);
 		}
+
 		return disposable;
 	}
 
@@ -21,6 +22,7 @@ export class DisposableStore {
 			for (const disposable of this.disposables) {
 				disposable.dispose();
 			}
+
 			this.disposables = undefined;
 		}
 	}
@@ -39,11 +41,13 @@ export class MutableDisposable<
 		if (this._value) {
 			this._value.dispose();
 		}
+
 		this._value = value;
 	}
 
 	public clear() {
 		this._value?.dispose();
+
 		this._value = undefined;
 	}
 

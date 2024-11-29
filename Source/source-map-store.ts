@@ -13,8 +13,11 @@ import {
 
 export interface ISourceMapMaintainer {
 	compiledUri: vscode.Uri;
+
 	value: Promise<IMappingAccessor> | undefined;
+
 	refresh(fileContents?: string): Promise<IMappingAccessor>;
+
 	dispose(): void;
 }
 
@@ -24,6 +27,7 @@ export class SourceMapStore {
 		string,
 		{
 			rc: number;
+
 			accessor?: Promise<IMappingAccessor>;
 		}
 	>();
@@ -41,8 +45,10 @@ export class SourceMapStore {
 
 		if (!rec) {
 			rec = { rc: 0 };
+
 			maps.set(key, rec);
 		}
+
 		rec.rc++;
 
 		return {

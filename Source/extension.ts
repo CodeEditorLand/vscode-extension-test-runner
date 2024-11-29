@@ -40,15 +40,19 @@ export function activate(context: vscode.ExtensionContext) {
 		if (resyncState === FolderSyncState.Syncing) {
 			resyncState = FolderSyncState.ReSyncNeeded;
 		}
+
 		if (resyncState !== FolderSyncState.Idle) {
 			return;
 		}
 
 		resyncState = FolderSyncState.Syncing;
+
 		ctrls.forEach((c) => c.dispose());
+
 		ctrls = [];
 
 		const folders = vscode.workspace.workspaceFolders ?? [];
+
 		await Promise.all(
 			folders.map(async (folder) => {
 				const files = await vscode.workspace.findFiles(
@@ -86,6 +90,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		// cast is needed since TS incorrectly keeps resyncState narrowed to Syncing
 		const prevState = resyncState as FolderSyncState;
+
 		resyncState = FolderSyncState.Idle;
 
 		if (prevState === FolderSyncState.ReSyncNeeded) {
@@ -97,6 +102,7 @@ export function activate(context: vscode.ExtensionContext) {
 		const untitledDoc = await vscode.workspace.openTextDocument({
 			content: contents,
 		});
+
 		await vscode.window.showTextDocument(untitledDoc);
 	};
 

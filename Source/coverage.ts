@@ -17,6 +17,7 @@ export const coverageContext = new IstanbulCoverageContext({
 
 export class Coverage {
 	private readonly targetDir = join(tmpdir(), `ext-coverage-${randomUUID()}`);
+
 	public readonly args = [
 		"--coverage",
 		"--coverage-reporter",

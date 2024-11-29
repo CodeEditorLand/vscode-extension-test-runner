@@ -23,9 +23,13 @@ import { SourceMapStore } from "./source-map-store";
 
 interface ISpawnOptions {
 	configIndex: number;
+
 	config: ConfigurationFile;
+
 	args: string[];
+
 	onLine: (line: string) => void;
+
 	token: vscode.CancellationToken;
 }
 
@@ -64,6 +68,7 @@ export class TestRunner {
 
 			if (recordCoverage) {
 				coverage = new Coverage(config);
+
 				baseArgs.push(...coverage.args);
 			}
 
@@ -92,10 +97,12 @@ export class TestRunner {
 				if (isOutsideTestRun) {
 					line = `${styles.dim.open}${line}${styles.dim.close}`;
 				}
+
 				outputQueue.enqueue(() => run.appendOutput(`${line}\r\n`));
 			};
 
 			const spawnCts = new vscode.CancellationTokenSource();
+
 			run.token.onCancellationRequested(() => spawnCts.cancel());
 
 			const spawnOpts: ISpawnOptions = {
@@ -113,6 +120,7 @@ export class TestRunner {
 
 						return;
 					}
+
 					switch (parsed[0]) {
 						case MochaEvent.Start:
 							isOutsideTestRun = false;
@@ -128,6 +136,7 @@ export class TestRunner {
 
 							break;
 						}
+
 						case MochaEvent.SuiteStart: {
 							const { path } = parsed[1];
 
@@ -138,12 +147,15 @@ export class TestRunner {
 									}`,
 								);
 							}
+
 							break;
 						}
+
 						case MochaEvent.Pass: {
 							ranAnyTest = true;
 
 							const { file, path } = parsed[1];
+
 							enqueueLine(
 								`${"  ".repeat(path.length - 1)}${styles.green.open} ✓ ${styles.green.close}${
 									path[path.length - 1]
@@ -154,10 +166,13 @@ export class TestRunner {
 
 							if (test) {
 								run.passed(test);
+
 								leafTests.delete(test);
 							}
+
 							break;
 						}
+
 						case MochaEvent.Fail: {
 							ranAnyTest = true;
 
@@ -222,6 +237,7 @@ export class TestRunner {
 								rawErr,
 								tcase!,
 							);
+
 							outputQueue.enqueue(async () => {
 								const location = await locationProm;
 
@@ -231,8 +247,10 @@ export class TestRunner {
 									message = new vscode.TestMessage(
 										tryMakeMarkdown(err),
 									);
+
 									message.actualOutput =
 										outputToString(actual);
+
 									message.expectedOutput =
 										outputToString(expected);
 								} else {
@@ -247,11 +265,13 @@ export class TestRunner {
 								}
 
 								message.location = location ?? testFirstLine;
+
 								run.failed(tcase!, message, duration);
 							});
 
 							break;
 						}
+
 						case MochaEvent.End:
 							isOutsideTestRun = true;
 
@@ -268,6 +288,7 @@ export class TestRunner {
 			};
 
 			const wrapper = this.wrapper.value;
+
 			run.appendOutput(
 				`${styles.inverse.open} > ${styles.inverse.close} ${
 					wrapper
@@ -293,6 +314,7 @@ export class TestRunner {
 			});
 
 			this.queues.set(userDataDir, promise);
+
 			await promise;
 
 			if (!spawnCts.token.isCancellationRequested) {
@@ -304,6 +326,7 @@ export class TestRunner {
 					const md = new vscode.MarkdownString(
 						"Test process exited unexpectedly, [view output](command:testing.showMostRecentOutput)",
 					);
+
 					md.isTrusted = true;
 
 					for (const t of leafTests) {
@@ -321,6 +344,7 @@ export class TestRunner {
 			}
 
 			await outputQueue.drain();
+
 			run.end();
 		};
 	}
@@ -390,6 +414,7 @@ export class TestRunner {
 			);
 
 			let didFindFirst = false;
+
 			ds.add(
 				vscode.debug.onDidTerminateDebugSession((session) => {
 					includedSessions.delete(session);
@@ -401,6 +426,7 @@ export class TestRunner {
 			);
 
 			let output = "";
+
 			ds.add(
 				vscode.debug.registerDebugAdapterTrackerFactory("*", {
 					createDebugAdapterTracker(session) {
@@ -413,6 +439,7 @@ export class TestRunner {
 						}
 
 						didFindFirst = true;
+
 						includedSessions.add(session);
 
 						return {
@@ -430,7 +457,9 @@ export class TestRunner {
 
 								while (newLine !== -1) {
 									onLine(output.substring(0, newLine));
+
 									output = output.substring(newLine + 1);
+
 									newLine = output.indexOf("\n");
 								}
 							},
@@ -454,11 +483,14 @@ export class TestRunner {
 		}
 
 		token.onCancellationRequested(() => cli.kill());
+
 		cli.stderr.pipe(split2()).on("data", onLine);
+
 		cli.stdout.pipe(split2()).on("data", onLine);
 
 		return new Promise<void>((resolve, reject) => {
 			cli.on("error", reject);
+
 			cli.on("exit", (code) => {
 				if (code === 0) {
 					resolve();
@@ -510,6 +542,7 @@ export class TestRunner {
 				for (const [, child] of test.children) {
 					include.push(child);
 				}
+
 				continue;
 			}
 
@@ -526,6 +559,7 @@ export class TestRunner {
 
 			forEachLeaf(test, (t) => {
 				leafTests.add(t);
+
 				run.enqueued(t);
 			});
 
@@ -595,6 +629,7 @@ class CompiledFileTests {
 			for (let i = 0; i < path.length && candidate; i++) {
 				candidate = candidate.children.get(path[i]);
 			}
+
 			if (candidate !== undefined) {
 				return candidate;
 			}
@@ -621,8 +656,10 @@ const getFullName = (test: vscode.TestItem) => {
 		testMetadata.get(test.parent)?.type === ItemType.Suite
 	) {
 		test = test.parent;
+
 		name = `${test.label} ${name}`;
 	}
+
 	return name;
 };
 
@@ -664,6 +701,7 @@ async function sourcemapStack(store: SourceMapStore, str: string) {
 			if (!location) {
 				return;
 			}
+
 			return {
 				from: match[0],
 				to: location?.uri.with({
@@ -767,6 +805,7 @@ async function tryDeriveStackLocation(
 								score = 2;
 							}
 						}
+
 						if (
 							!best ||
 							score > best.score ||
@@ -826,6 +865,7 @@ const tryMakeMarkdown = (message: string) => {
 	}
 
 	lines.splice(start, 1, "```diff");
+
 	lines.push("```");
 
 	return new vscode.MarkdownString(lines.join("\n"));

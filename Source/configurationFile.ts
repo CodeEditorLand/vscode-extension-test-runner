@@ -23,9 +23,13 @@ import {
 
 export interface IResolvedConfiguration {
 	env: Record<string, string>;
+
 	extensionTestsPath: string;
+
 	extensionDevelopmentPath: string;
+
 	config: TestConfiguration;
+
 	path: string;
 }
 
@@ -36,9 +40,11 @@ const resolver = resolveModule.ResolverFactory.createResolver({
 
 export class ConfigurationFile implements vscode.Disposable {
 	private readonly ds = new DisposableStore();
+
 	private readonly didDeleteEmitter = this.ds.add(
 		new vscode.EventEmitter<void>(),
 	);
+
 	private readonly didChangeEmitter = this.ds.add(
 		new vscode.EventEmitter<void>(),
 	);
@@ -62,14 +68,18 @@ export class ConfigurationFile implements vscode.Disposable {
 		);
 
 		let changeDebounce: NodeJS.Timeout | undefined;
+
 		this.ds.add(
 			watcher.onDidChange(() => {
 				if (changeDebounce) {
 					clearTimeout(changeDebounce);
 				}
+
 				changeDebounce = setTimeout(() => {
 					changeDebounce = undefined;
+
 					this.readPromise = undefined;
+
 					this.didChangeEmitter.fire();
 				}, 300);
 			}),
@@ -78,6 +88,7 @@ export class ConfigurationFile implements vscode.Disposable {
 		this.ds.add(
 			watcher.onDidDelete(() => {
 				this.readPromise = undefined;
+
 				this.didDeleteEmitter.fire();
 			}),
 		);
@@ -85,6 +96,7 @@ export class ConfigurationFile implements vscode.Disposable {
 		this.ds.add(
 			wrapper.onDidChange(() => {
 				this.readPromise = undefined;
+
 				this.didChangeEmitter.fire();
 			}),
 		);
@@ -122,9 +134,11 @@ export class ConfigurationFile implements vscode.Disposable {
 
 				if (wrapper instanceof Array) {
 					argvN = [...wrapper.slice(1), process.execPath, ...argvN];
+
 					argv0 = wrapper[0];
 				} else if (wrapper) {
 					argvN.unshift(process.execPath);
+
 					argv0 = wrapper;
 				}
 
@@ -132,7 +146,9 @@ export class ConfigurationFile implements vscode.Disposable {
 					cwd: path.dirname(this.uri.fsPath),
 					env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" },
 				});
+
 				p.on("spawn", () => resolve(p));
+
 				p.on("error", reject);
 			},
 		);
@@ -147,9 +163,13 @@ export class ConfigurationFile implements vscode.Disposable {
 
 		return await new Promise<T>((resolve, reject) => {
 			const output: Buffer[] = [];
+
 			p.stdout.on("data", (chunk) => output.push(chunk));
+
 			p.stderr.on("data", (chunk) => output.push(chunk));
+
 			p.on("error", reject);
+
 			p.on("close", (code) => {
 				const joined = Buffer.concat(output).toString();
 
@@ -293,6 +313,7 @@ export class ConfigurationList {
 
 				if (value.startsWith("!")) {
 					negated = true;
+
 					value = value.slice(1);
 				}
 
@@ -307,6 +328,7 @@ export class ConfigurationList {
 
 			if (matched) {
 				indexes ??= [];
+
 				indexes.push(i);
 			}
 		}

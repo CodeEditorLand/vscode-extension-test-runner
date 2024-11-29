@@ -28,6 +28,7 @@ const getStringish = (nameArg: Node | undefined): string | undefined => {
 	if (nameArg?.type === C.Literal && typeof nameArg.value === "string") {
 		return nameArg.value;
 	}
+
 	if (nameArg?.type === C.TemplateLiteral && nameArg.quasis.length === 1) {
 		return nameArg.quasis[0].value.cooked || nameArg.quasis[0].value.raw;
 	}
@@ -40,6 +41,7 @@ const traverse = (
 	if (!node) {
 		return;
 	}
+
 	visitor.enter(node);
 
 	const keys = evk.KEYS[node.type];
@@ -72,6 +74,7 @@ export const extractWithAst = (text: string, symbols: ITestSymbols) => {
 				: undefined;
 
 	const stack: { node: Node; r: IParsedNode }[] = [];
+
 	stack.push({ node: undefined, r: { children: [] } } as any);
 
 	traverse(ast as Node, {
@@ -92,6 +95,7 @@ export const extractWithAst = (text: string, symbols: ITestSymbols) => {
 				node.callee.property.type === C.Identifier
 			) {
 				kind = interestingName(node.callee.object.name);
+
 				directive = node.callee.property.name;
 			}
 
@@ -118,7 +122,9 @@ export const extractWithAst = (text: string, symbols: ITestSymbols) => {
 			if (directive) {
 				child.directive = directive;
 			}
+
 			stack[stack.length - 1].r.children.push(child);
+
 			stack.push({ node, r: child });
 		},
 		leave(node) {

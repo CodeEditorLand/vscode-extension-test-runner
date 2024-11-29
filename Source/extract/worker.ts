@@ -48,6 +48,7 @@ parentPort!.on(
 		}
 
 		nodes ??= extractWithAst(contents, symbols);
+
 		respond({ req, hash, nodes });
 	},
 );

@@ -13,6 +13,7 @@ const walkObject = <T>(value: T, replacer: (value: unknown) => any): T => {
 		for (const [k, v] of Object.entries(value)) {
 			newValue[replacer(k)] = walkObject(v, replacer);
 		}
+
 		return newValue as T;
 	}
 
@@ -21,7 +22,9 @@ const walkObject = <T>(value: T, replacer: (value: unknown) => any): T => {
 
 export class ConfigValue<T> {
 	private readonly changeEmitter = new vscode.EventEmitter<T>();
+
 	private readonly changeListener: vscode.Disposable;
+
 	private _value!: T;
 
 	public readonly onDidChange = this.changeEmitter.event;
@@ -58,11 +61,13 @@ export class ConfigValue<T> {
 
 	public dispose() {
 		this.changeListener.dispose();
+
 		this.changeEmitter.dispose();
 	}
 
 	private setValue(value: T) {
 		this._value = value;
+
 		this.changeEmitter.fire(this._value);
 	}
 }

@@ -82,6 +82,7 @@ export const extractWithEvaluation = (
 				if (desc && !desc.writable && !desc.configurable) {
 					return desc.value; // avoid invariant volation https://stackoverflow.com/q/75148897
 				}
+
 				return placeholder();
 			},
 			construct() {
@@ -89,6 +90,7 @@ export const extractWithEvaluation = (
 			},
 			set: () => true,
 		});
+
 		placeholders.add(ph);
 
 		return ph;
@@ -111,6 +113,7 @@ export const extractWithEvaluation = (
 						);
 					};
 				}
+
 				if (value && typeof value === "object") {
 					return wrapImportedModule(value);
 				}
@@ -160,6 +163,7 @@ export const extractWithEvaluation = (
 			if (directive) {
 				node.directive = directive;
 			}
+
 			stack[stack.length - 1].children.push(node);
 
 			if (kind === NodeKind.Suite) {
@@ -177,6 +181,7 @@ export const extractWithEvaluation = (
 
 		if (!directive) {
 			fn.skip = makeTesterFunction(kind, "skip");
+
 			fn.only = makeTesterFunction(kind, "only");
 		}
 
