@@ -100,7 +100,7 @@
 		"@types/estree": "1.0.6",
 		"@types/glob": "8.1.0",
 		"@types/node": "22.x",
-		"@types/picomatch": "3.0.1",
+		"@types/picomatch": "3.0.2",
 		"@types/sinon": "17.0.3",
 		"@types/split2": "4.2.3",
 		"acorn": "8.14.0",
